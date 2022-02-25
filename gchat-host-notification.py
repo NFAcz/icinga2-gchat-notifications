@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
-import requests
+import json
+import urllib.request
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--longdatetime', help='LONGDATETIME ($icinga.long_date_time$)', required=True)
@@ -38,8 +39,8 @@ if args.notificationcomment:
 if args.icinga2weburl:
     notification_message += f'URL:    {args.icinga2weburl}/monitoring/host/show?host={args.hostname}\n'
 
-r = requests.post(args.gchat_webhook_url, json={'text': notification_message})
-if r.status_code >= 400:
-    print(r.text)
-    exit(1)
-
+data = json.dumps({'text': notification_message}).encode('utf8')
+req = urllib.request.Request(args.gchat_webhook_url, data=data, headers={'content-type': 'application/json'})
+r = urllib.request.urlopen(req)
+if args.verbose:
+    print(r.read().decode('utf8'))
